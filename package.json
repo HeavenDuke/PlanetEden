@@ -1,0 +1,12 @@
+{
+  "name": "application-name",
+  "version": "0.0.1",
+  "dependencies": {
+    "restify": "3.0.3",
+    "restify-session": "1.0.4",
+    "restify-cookies": "0.1.1",
+    "sequelize": "3.0.0",
+    "mysql": "2.6.2",
+    "password-hash": "1.2.2"
+  }
+}
