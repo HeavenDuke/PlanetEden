@@ -29,3 +29,5 @@ exports.getCategoryList = function (req, res, next) {
 exports.getJournal = function (req, res, next) {
 
 };
+
+exports.comment = require('./journal.comment');

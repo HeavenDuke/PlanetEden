@@ -3,6 +3,7 @@
  */
 
 var restify = require('restify');
+var redis = require('redis');
 var config = require('./config').config;
 var controllers = require('./controllers');
 var restify_session = require('restify-session')({
@@ -28,14 +29,16 @@ global.db = require('./database')(
 );
 
 global.db.sync();
+global.redis_client = redis.createClient();
 
 
 //user module
 server.get('/users', controllers.user.getInfo);
 server.post('/users', controllers.user.register);
-server.delete('/users', controllers.user.logout);
+server.put('/users', controllers.user.login);
+server.del('/users', controllers.user.logout);
 server.put('/users/:user_id', controllers.user.updateInfo);
-server.patch('/users/:user_id', controller.user.updatePassword);
+server.patch('/users/:user_id', controllers.user.updatePassword);
 
 //journal module
 server.get('/journals', controllers.journal.getJournal);
@@ -43,18 +46,24 @@ server.get('/journals/:journal_id', controllers.journal.getList);
 server.get('/journals/categories/:category_id', controllers.journal.getCategoryList);
 server.post('/journals', controllers.journal.create);
 server.put('/journals', controllers.journal.update);
-server.delete('/journals/:journal_id', controllers.journal.delete);
+server.del('/journals/:journal_id', controllers.journal.delete);
+
+//comment module
+server.get('/journals/:journal_id/comments', controllers.journal.comment.getList);
+server.get('/journals/:journal_id/comments/:comments_id', controllers.journal.comment.getReply);
+server.post('/journals/:journal_id/comments', controllers.journal.comment.create);
+server.post('/journals/:journal_id/comments/:comments_id', controllers.journal.comment.postReply);
 
 //category module
 server.get('/categories', controllers.category.getList);
 server.post('/categories', controllers.category.create);
-server.delete('/categories/:category_id', controllers.category.delete);
+server.del('/categories/:category_id', controllers.category.delete);
 server.put('/categories/:category_id', controllers.category.update);
 
 //music module
 server.post('/musics', controllers.music.create);
 server.get('/musics', controllers.music.getList);
-server.delete('/musics/:music_id', controllers.music.delete);
+server.del('/musics/:music_id', controllers.music.delete);
 server.put('/musics/:music_id', controllers.music.update);
 
 server.get('/', function (req, res, next) {
@@ -62,6 +71,13 @@ server.get('/', function (req, res, next) {
     res.json({
         code: 1,
         message: 'hello!'
+    });
+});
+
+server.on('uncaughtException', function(req, res, route, err) {
+    res.json({
+        code: err.statusCode,
+        message: err.message
     });
 });
 
