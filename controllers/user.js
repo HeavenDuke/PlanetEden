@@ -37,8 +37,7 @@ exports.login = function (req, res, next) {
         if(!passwordHash.verify(req.body.password, user.password)) {
             throw new Error('密码错误！');
         }
-        req.session.uid = user.id
-        global.redis_client.set(req.session.sid, req.session);
+        global.redis_client.set(req.session.sid, JSON.stringify({uid: user.id}));
         res.json({
             user_id: user.id,
             message: '登录成功！'
@@ -48,7 +47,12 @@ exports.login = function (req, res, next) {
 
 exports.updateInfo = function (req, res, next) {
     var User = global.db.models.user;
-    User.find(user_id).then(function(user) {
+    var form = {
+        id: req.params.user_id
+    };
+    User.find({
+        where: form
+    }).then(function(user) {
         if(!user) {
             throw new Error('用户不存在！');
         }
@@ -68,7 +72,12 @@ exports.updateInfo = function (req, res, next) {
 
 exports.updatePassword = function (req, res, next) {
     var User = global.db.models.user;
-    User.find(user_id).then(function(user) {
+    var form = {
+        id: req.params.user_id
+    }
+    User.find({
+        where: form
+    }).then(function(user) {
         if(!user) {
             throw new Error('用户不存在！');
         }
@@ -79,6 +88,7 @@ exports.updatePassword = function (req, res, next) {
             throw new Error('两次输入密码不一致！');
         }
         user.password = passwordHash.generate(req.body.newPwd);
+        global.redis_client.set(req.session.sid, JSON.stringify({}));
         user.save().then(function() {
             res.json({
                 message: 'success'
@@ -88,13 +98,20 @@ exports.updatePassword = function (req, res, next) {
 };
 
 exports.logout = function (req, res, next) {
-
+    global.redis_client.set(req.session.sid, JSON.stringify({}));
+    res.json({
+        message: 'success'
+    });
 };
 
 exports.getInfo = function (req, res, next) {
     var User = global.db.models.user;
-    var user_id = 1;
-    User.find(user_id).then(function(user) {
+    var form = {
+        id: 1
+    }
+    User.find({
+        where: form
+    }).then(function(user) {
         if(!user) {
             throw new Error('用户不存在！');
         }

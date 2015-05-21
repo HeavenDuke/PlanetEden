@@ -5,6 +5,7 @@
 var restify = require('restify');
 var redis = require('redis');
 var config = require('./config').config;
+var middleware = require('./middlewares');
 var controllers = require('./controllers');
 var restify_session = require('restify-session')({
     debug: true,
@@ -33,18 +34,18 @@ global.redis_client = redis.createClient();
 
 
 //user module
-server.get('/users', controllers.user.getInfo);
+server.get('/users/:user_id', controllers.user.getInfo);
 server.post('/users', controllers.user.register);
 server.put('/users', controllers.user.login);
-server.del('/users', controllers.user.logout);
-server.put('/users/:user_id', controllers.user.updateInfo);
-server.patch('/users/:user_id', controllers.user.updatePassword);
+server.del('/users', middleware.validateUserByBody, controllers.user.logout);
+server.put('/users/:user_id', middleware.validateUserByParam, controllers.user.updateInfo);
+server.patch('/users/:user_id', middleware.validateUserByParam, controllers.user.updatePassword);
 
 //journal module
-server.get('/journals', controllers.journal.getJournal);
-server.get('/journals/:journal_id', controllers.journal.getList);
+server.get('/journals', controllers.journal.getList);
+server.get('/journals/:journal_id', controllers.journal.getJournal);
 server.get('/journals/categories/:category_id', controllers.journal.getCategoryList);
-server.post('/journals', controllers.journal.create);
+server.post('/journals', middleware.validateUserByBody, controllers.journal.create);
 server.put('/journals', controllers.journal.update);
 server.del('/journals/:journal_id', controllers.journal.delete);
 

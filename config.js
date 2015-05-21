@@ -21,6 +21,9 @@ var config = {
     },
     serverConfig: {
         port: 3000
+    },
+    businessConfig: {
+        page_limit: 20
     }
 }
 
